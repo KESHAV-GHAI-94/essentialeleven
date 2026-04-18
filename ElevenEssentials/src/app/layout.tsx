@@ -1,0 +1,39 @@
+import type { Metadata } from "next";
+import { Outfit } from "next/font/google";
+import "./globals.css";
+import { cn } from "@/lib/utils";
+
+import { Providers } from "./providers";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
+import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
+import { Analytics } from "@/components/analytics/Analytics";
+
+const outfit = Outfit({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
+  title: "Essential Eleven | Premium Essentials. Zero Compromise.",
+  description: "Discover the perfect balance of form and function with our curated collection of everyday essentials.",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body className={cn(outfit.className, "antialiased min-h-screen flex flex-col")}>
+        <Providers>
+          <Analytics />
+          <AnnouncementBar />
+          <Navbar />
+          <main className="flex-grow">
+            {children}
+          </main>
+          <Footer />
+        </Providers>
+      </body>
+    </html>
+  );
+}

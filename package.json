@@ -1,0 +1,23 @@
+{
+  "name": "eleven-essentials-workspace",
+  "private": true,
+  "workspaces": [
+    "ElevenEssentials",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=frontend\" \"npm run dev --workspace=backend\"",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev:backend": "npm run dev --workspace=backend",
+    "prisma:generate": "npm run generate --workspace=backend",
+    "prisma:push": "npm run push --workspace=backend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "lucide-react": "^0.453.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "@sentry/nextjs": "^10.49.0"
+  }
+}

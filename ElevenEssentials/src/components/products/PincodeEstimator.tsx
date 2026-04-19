@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { MapPin, Truck, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ShippingService } from "@/services/shipping.service";
 
 export function PincodeEstimator() {
   const [pincode, setPincode] = useState("");
@@ -14,8 +15,7 @@ export function PincodeEstimator() {
     setStatus("loading");
     
     try {
-      const res = await fetch(`http://localhost:4000/api/shipping/estimate-pincode?pincode=${pincode}`);
-      const data = await res.json();
+      const data = await ShippingService.getEstimates(pincode);
       
       if (data.status === "success") {
         setDeliveryDate(data.deliveryDate);
@@ -24,7 +24,6 @@ export function PincodeEstimator() {
         setStatus("error");
       }
     } catch(err) {
-      // Graceful local error check if no backend running.
       setStatus("error");
     }
   };

@@ -4,12 +4,9 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 
 import { Providers } from "./providers";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
-import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { Analytics } from "@/components/analytics/Analytics";
-import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { CartSync } from "@/components/cart/CartSync";
+import { ConditionalLayoutWrapper } from "@/components/layout/ConditionalLayoutWrapper";
 
 const outfit = Outfit({ subsets: ["latin"] });
 
@@ -28,13 +25,10 @@ export default function RootLayout({
       <body className={cn(outfit.className, "antialiased min-h-screen flex flex-col")}>
         <Providers>
           <Analytics />
-          <AnnouncementBar />
-          <Navbar />
           <CartSync />
-          <main className="flex-grow">
+          <ConditionalLayoutWrapper>
             {children}
-          </main>
-          <Footer />
+          </ConditionalLayoutWrapper>
         </Providers>
       </body>
     </html>

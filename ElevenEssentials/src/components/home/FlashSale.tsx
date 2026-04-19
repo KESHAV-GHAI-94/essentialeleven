@@ -57,9 +57,11 @@ export function FlashSale({ products }: FlashSaleProps) {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="flex flex-wrap justify-center gap-10">
                 {products.slice(0, 4).map(product => (
-                    <ProductCard key={product.id} product={product} />
+                    <div key={product.id} className="w-full sm:w-[calc(50%-2rem)] lg:w-[calc(25%-2.5rem)] max-w-[380px]">
+                        <ProductCard product={product} />
+                    </div>
                 ))}
             </div>
         </div>

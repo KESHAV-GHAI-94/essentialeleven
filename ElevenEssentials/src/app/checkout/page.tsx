@@ -2,7 +2,7 @@
 
 import { useCartStore } from "@/store/cart";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, Truck, CreditCard, ChevronRight, Lock, MapPin, User, Mail, Phone, ShoppingTag } from "lucide-react";
+import { Tag, ShieldCheck, Truck, CreditCard, ChevronRight, Lock, MapPin, User, Mail, Phone } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -10,6 +10,8 @@ import { useRouter } from "next/navigation";
 import Script from "next/script";
 import { trackInitiateCheckout } from "@/lib/pixel";
 import GooglePlacesAutocomplete from 'react-google-places-autocomplete';
+import { AddressService } from "@/services/address.service";
+import { PaymentService } from "@/services/payment.service";
 import { useSession } from "next-auth/react";
 
 export default function CheckoutPage() {
@@ -44,13 +46,7 @@ export default function CheckoutPage() {
       trackInitiateCheckout(getCartTotal(), items.length);
     }
     if (session?.user?.id) {
-       fetch(`http://localhost:4000/api/addresses/user/${session.user.id}`)
-         .then(res => res.json())
-         .then(data => {
-            setSavedAddresses(data);
-            const def = data.find((a: any) => a.isDefault);
-            if (def) handleSelectAddress(def);
-         });
+       AddressService.getSavedAddresses(session.user.id).then(setSavedAddresses);
     }
   }, [session?.user?.id]);
 
@@ -78,7 +74,6 @@ export default function CheckoutPage() {
   };
 
 
-
   if (!mounted) return null;
   if (items.length === 0) {
     router.replace("/shop");
@@ -98,18 +93,12 @@ export default function CheckoutPage() {
     setLoading(true);
     try {
       // 1. Create order on backend
-      const res = await fetch("http://localhost:4000/api/payments/create-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: total,
-          userId: session?.user?.id,
-          email: formData.email,
-          items: items,
-          receipt: `receipt_${Date.now()}`
-        })
+      const order = await PaymentService.createOrder({
+         amount: total,
+         userId: session?.user?.id,
+         email: formData.email,
+         items: items
       });
-      const order = await res.json();
 
       // 2. Open Razorpay Modal
       const options = {
@@ -121,12 +110,7 @@ export default function CheckoutPage() {
         order_id: order.id,
         handler: async function (response: any) {
           // 3. Verify payment
-          const verifyRes = await fetch("http://localhost:4000/api/payments/verify-payment", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(response)
-          });
-          const verifyData = await verifyRes.json();
+          const verifyData = await PaymentService.verifyPayment(response);
 
           if (verifyData.success) {
             clearCart();
@@ -413,7 +397,7 @@ export default function CheckoutPage() {
               >✕</button>
               
               <div className="w-20 h-20 bg-saffron/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                 <ShoppingTag className="w-10 h-10 text-saffron" />
+                 <Tag className="w-10 h-10 text-saffron" />
               </div>
               
               <h2 className="text-3xl font-black text-navy-900 mb-2">Wait! Don't leave yet</h2>

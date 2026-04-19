@@ -1,15 +1,31 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { redis } from "./lib/redis";
+import { getToken } from "next-auth/jwt";
 
 export async function middleware(request: NextRequest) {
-  // Only apply rate limiting to API routes
-  if (request.nextUrl.pathname.startsWith("/api")) {
+  const { pathname } = request.nextUrl;
+
+  // 1. Role-based Protection for /admin
+  if (pathname.startsWith("/admin")) {
+    const token = await getToken({ 
+      req: request, 
+      secret: process.env.NEXTAUTH_SECRET 
+    });
+
+    if (!token || token.role !== "ADMIN") {
+      const url = new URL("/login", request.url);
+      url.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // 2. Rate Limiting for API routes
+  if (pathname.startsWith("/api")) {
     const ip = request.ip ?? "127.0.0.1";
     const key = `rate_limit:${ip}`;
     
     try {
-      // Basic rate limiting: 100 requests per minute
       const requests = await (redis as any).get(key);
       
       if (requests && parseInt(requests) > 100) {
@@ -19,14 +35,11 @@ export async function middleware(request: NextRequest) {
         );
       }
       
-      const newCount = await (redis as any).incr(key);
-      if (newCount === 1) {
-          await (redis as any).expire(key, 60);
-      }
+      await (redis as any).incr(key);
+      await (redis as any).expire(key, 60);
 
     } catch (e) {
       console.error("Rate Limit Error:", e);
-      // Fail open to ensure site stays functional if Redis is down
     }
   }
 
@@ -34,5 +47,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/api/:path*"],
+  matcher: ["/api/:path*", "/admin/:path*"],
 };

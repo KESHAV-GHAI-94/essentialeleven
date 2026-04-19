@@ -3,7 +3,7 @@ import { redis } from "../utils/redis.js";
 
 export class ProductService {
   static async getAll() {
-    const cacheKey = "all_products";
+    const cacheKey = "all_products_v2";
     
     // 1. Try to get from Redis
     try {
@@ -16,7 +16,10 @@ export class ProductService {
     // 2. Fetch from DB
     const products = await prisma.product.findMany({
       where: { isActive: true },
-      include: { category: true }
+      include: { 
+        category: true,
+        variants: true
+      }
     });
 
     // 3. Save to Redis (Cache for 1 hour)

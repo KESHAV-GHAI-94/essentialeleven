@@ -74,20 +74,48 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Custom Premium Scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0F172A;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #1E293B;
+    border-radius: 5px;
+    border: 2px solid #0F172A;
+    transition: all 0.3s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #F59E0B;
+  }
+
+  /* Firefox Support */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #1E293B #0F172A;
   }
 }
 
 /* Checkout Autocomplete Override */
-.checkout-autocomplete > div {
+.checkout-autocomplete>div {
   background-color: white !important;
   border-color: #cbd5e1 !important;
   border-radius: 0.75rem !important;
   padding: 0.25rem 0.5rem !important;
 }
 
-.checkout-autocomplete > div:hover {
+.checkout-autocomplete>div:hover {
   border-color: #F59E0B !important;
 }
 

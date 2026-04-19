@@ -5,24 +5,25 @@ import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { CartIcon } from "../cart/CartIcon";
-import { 
-  User, 
-  Menu, 
-  X, 
-  Search, 
-  ChevronDown, 
-  Package, 
-  Watch, 
-  Laptop, 
-  Sparkles 
+import {
+  User,
+  Menu,
+  X,
+  Search,
+  ChevronDown,
+  LayoutDashboard,
+  Package,
+  Watch,
+  Laptop,
+  Sparkles
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSyncRecentlyViewed } from "@/hooks/useSyncRecentlyViewed";
 
 const NAV_LINKS = [
   { name: "Home", href: "/" },
-  { 
-    name: "Shop", 
+  {
+    name: "Shop",
     href: "/shop",
     hasMegaMenu: true,
     categories: [
@@ -45,6 +46,8 @@ export function Navbar() {
   const [activeMegaMenu, setActiveMegaMenu] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<any[]>([]);
 
+  const searchRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
@@ -53,21 +56,36 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setIsSearchOpen(false);
+        setSearchResults([]);
+      }
+    };
+    if (isSearchOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isSearchOpen]);
+
   return (
     <nav
       className={cn(
         "sticky top-0 left-0 right-0 z-50 transition-all duration-300 px-6 border-b border-white/5",
-        isScrolled 
-          ? "bg-navy-900/95 backdrop-blur-md shadow-lg py-3" 
+        isScrolled
+          ? "bg-navy-900/95 backdrop-blur-md shadow-lg py-3"
           : "bg-navy-900/40 backdrop-blur-sm py-4"
       )}
       onMouseLeave={() => setActiveMegaMenu(null)}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Mobile Menu Toggle */}
-        <button 
-           className="lg:hidden text-white p-2"
-           onClick={() => setIsSidebarOpen(true)}
+        <button
+          className="lg:hidden text-white p-2"
+          onClick={() => setIsSidebarOpen(true)}
         >
           <Menu className="w-6 h-6" />
         </button>
@@ -85,10 +103,10 @@ export function Navbar() {
         {/* Desktop Navigation */}
         <div className="hidden lg:flex items-center gap-10">
           {NAV_LINKS.map((link) => (
-            <div 
-               key={link.href} 
-               className="relative"
-               onMouseEnter={() => link.hasMegaMenu && setActiveMegaMenu(link.name)}
+            <div
+              key={link.href}
+              className="relative"
+              onMouseEnter={() => link.hasMegaMenu && setActiveMegaMenu(link.name)}
             >
               <Link
                 href={link.href}
@@ -106,13 +124,13 @@ export function Navbar() {
 
         {/* Actions */}
         <div className="flex items-center gap-3">
-          <button 
-             onClick={() => setIsSearchOpen(!isSearchOpen)}
-             className="p-2 hover:bg-white/10 rounded-full transition-colors text-white"
+          <button
+            onClick={() => setIsSearchOpen(!isSearchOpen)}
+            className="p-2 hover:bg-white/10 rounded-full transition-colors text-white"
           >
             <Search className="w-5 h-5" />
           </button>
-          
+
           {status === "authenticated" ? (
             <div className="relative group">
               <button className="p-2 hover:bg-white/10 rounded-full transition-colors text-white">
@@ -120,7 +138,7 @@ export function Navbar() {
                   {session.user?.name?.[0] || "U"}
                 </div>
               </button>
-              
+
               {/* Dropdown Menu */}
               <div className="absolute top-full right-0 mt-2 w-48 bg-navy-900 border border-white/10 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[70] overflow-hidden">
                 <div className="p-4 border-b border-white/5">
@@ -128,6 +146,11 @@ export function Navbar() {
                   <p className="text-sm font-bold text-white truncate">{session.user?.name}</p>
                 </div>
                 <div className="py-2">
+                  {(session.user as any)?.role === "ADMIN" && (
+                    <Link href="/admin" className="flex items-center gap-3 px-4 py-2 text-sm text-saffron hover:bg-white/5 transition-colors">
+                      <LayoutDashboard className="w-4 h-4" /> Admin Panel
+                    </Link>
+                  )}
                   <Link href="/account" className="flex items-center gap-3 px-4 py-2 text-sm text-navy-100 hover:bg-white/5 hover:text-saffron transition-colors">
                     <User className="w-4 h-4" /> Account Settings
                   </Link>
@@ -136,7 +159,7 @@ export function Navbar() {
                   </Link>
                 </div>
                 <div className="border-t border-white/5 py-2">
-                  <button 
+                  <button
                     onClick={() => signOut()}
                     className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-400/10 transition-colors"
                   >
@@ -150,108 +173,121 @@ export function Navbar() {
               <User className="w-5 h-5" />
             </Link>
           )}
-          
+
           <CartIcon />
         </div>
       </div>
 
       {/* Mega Menu Content */}
       {activeMegaMenu === "Shop" && (
-          <div className="absolute top-full left-0 right-0 bg-white border-t border-navy-100 animate-in slide-in-from-top-2 duration-300">
-              <div className="max-w-5xl mx-auto grid grid-cols-4 gap-8 py-12 px-6">
-                {NAV_LINKS.find(l => l.name === "Shop")?.categories?.map((cat) => (
-                    <Link key={cat.name} href={`/shop?cat=${cat.name.toLowerCase()}`} className="group flex flex-col items-center text-center">
-                        <div className="w-16 h-16 rounded-full bg-navy-50 flex items-center justify-center mb-4 group-hover:bg-saffron transition-colors">
-                            <cat.icon className="w-6 h-6 text-navy-900" />
-                        </div>
-                        <h4 className="font-bold text-navy-900 text-sm mb-1">{cat.name}</h4>
-                        <p className="text-xs text-navy-400">{cat.desc}</p>
-                    </Link>
-                ))}
-              </div>
+        <div className="absolute top-full left-0 right-0 bg-white border-t border-navy-100 animate-in slide-in-from-top-2 duration-300">
+          <div className="max-w-5xl mx-auto grid grid-cols-4 gap-8 py-12 px-6">
+            {NAV_LINKS.find(l => l.name === "Shop")?.categories?.map((cat) => (
+              <Link key={cat.name} href={`/shop?cat=${cat.name.toLowerCase()}`} className="group flex flex-col items-center text-center">
+                <div className="w-16 h-16 rounded-full bg-navy-50 flex items-center justify-center mb-4 group-hover:bg-saffron transition-colors">
+                  <cat.icon className="w-6 h-6 text-navy-900" />
+                </div>
+                <h4 className="font-bold text-navy-900 text-sm mb-1">{cat.name}</h4>
+                <p className="text-xs text-navy-400">{cat.desc}</p>
+              </Link>
+            ))}
           </div>
+        </div>
       )}
 
       {/* Search Overlay & Autocomplete */}
       {isSearchOpen && (
-          <div className="absolute top-full left-0 right-0 bg-navy-900 p-6 animate-in fade-in duration-200 shadow-2xl z-50">
-              <div className="max-w-3xl mx-auto relative">
-                   <Search className="absolute left-4 top-[17px] text-navy-400 w-5 h-5" />
-                   <input 
-                      autoFocus
-                      placeholder="Search for premium essentials..." 
-                      className="w-full bg-navy-800 border-none rounded-lg pl-12 pr-4 py-4 text-white placeholder:text-navy-500 focus:ring-2 focus:ring-saffron"
-                      onChange={async (e) => {
-                         const query = e.target.value;
-                         if (!query) {
-                           setSearchResults([]);
-                           return;
-                         }
-                         try {
-                           const res = await fetch('https://getmeilimeilisearchv190-production-3be0.up.railway.app/indexes/products/search', {
-                             method: 'POST',
-                             headers: {
-                               'Authorization': 'Bearer 6u0mgssp89wnnefdwroyvp3ef973uzvu',
-                               'Content-Type': 'application/json'
-                             },
-                             body: JSON.stringify({ q: query, limit: 5 })
-                           });
-                           const data = await res.json();
-                           if (data.hits) setSearchResults(data.hits);
-                         } catch (err) {
-                           console.error("Meilisearch Error:", err);
-                         }
-                      }}
-                   />
-                   
-                   {/* Dropdown Autocomplete Task 6 Implementation */}
-                   {(searchResults.length > 0 || document.activeElement?.tagName === "INPUT") && (
-                     <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-xl shadow-2xl p-4 border border-navy-100 flex flex-col gap-2">
-                        <p className="text-xs uppercase tracking-widest text-navy-400 font-bold mb-2">
-                          {searchResults.length > 0 ? "Suggested Products" : "Type to search..."}
-                        </p>
-                        
-                        {searchResults.map((item: any) => (
-                          <Link key={item.id} href={`/shop/${item.id}`} className="flex items-center gap-4 p-3 hover:bg-navy-50 border border-transparent hover:border-navy-100 transition-colors rounded-lg" onClick={() => setIsSearchOpen(false)}>
-                             <div className="w-12 h-12 bg-navy-100 rounded overflow-hidden shrink-0">
-                               <img src={item.image || "/images/hero/meridian.jpg"} className="w-full h-full object-cover" />
-                             </div>
-                             <div>
-                                <p className="font-bold text-navy-900 line-clamp-1">{item.name}</p>
-                                <p className="text-xs text-navy-500 font-medium">₹{item.price?.toLocaleString() || 0}</p>
-                             </div>
-                          </Link>
-                        ))}
-                     </div>
-                   )}
-              </div>
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-transparent"
+            onClick={() => {
+              setIsSearchOpen(false);
+              setSearchResults([]);
+            }}
+          />
+          <div ref={searchRef} className="absolute top-full left-0 right-0 bg-navy-900 p-6 animate-in fade-in duration-200 shadow-2xl z-50 border-t border-white/10">
+            <div className="max-w-3xl mx-auto relative group">
+              <Search className="absolute left-4 top-[17px] text-navy-400 w-5 h-5 group-focus-within:text-saffron transition-colors" />
+              <input
+                autoFocus
+                placeholder="Search for premium essentials..."
+                className="w-full bg-navy-800 border-none rounded-lg pl-12 pr-4 py-4 text-white placeholder:text-navy-500 focus:ring-2 focus:ring-saffron transition-all"
+                onChange={async (e) => {
+                  const query = e.target.value;
+                  if (!query) {
+                    setSearchResults([]);
+                    return;
+                  }
+                  try {
+                    const res = await fetch('https://getmeilimeilisearchv190-production-3be0.up.railway.app/indexes/products/search', {
+                      method: 'POST',
+                      headers: {
+                        'Authorization': 'Bearer 6u0mgssp89wnnefdwroyvp3ef973uzvu',
+                        'Content-Type': 'application/json'
+                      },
+                      body: JSON.stringify({ q: query, limit: 5 })
+                    });
+                    const data = await res.json();
+                    if (data.hits) setSearchResults(data.hits);
+                  } catch (err) {
+                    console.error("Meilisearch Error:", err);
+                  }
+                }}
+              />
+
+              {/* Dropdown Autocomplete Task 6 Implementation */}
+              {searchResults.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-xl shadow-2xl p-4 border border-navy-100 flex flex-col gap-2">
+                  <p className="text-xs uppercase tracking-widest text-navy-400 font-bold mb-2">
+                    Suggested Products
+                  </p>
+
+                  {searchResults.map((item: any) => {
+                    const productImg = item.image || (Array.isArray(item.images) ? item.images[0] : item.images) || "/images/hero/meridian.jpg";
+                    return (
+                      <Link key={item.id} href={`/shop/${item.id}`} className="flex items-center gap-4 p-3 hover:bg-navy-50 border border-transparent hover:border-navy-100 transition-all rounded-lg group" onClick={() => setIsSearchOpen(false)}>
+                        <div className="w-14 h-14 bg-navy-100 rounded-lg overflow-hidden shrink-0 border border-navy-100">
+                          <img src={productImg} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={item.name} />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-navy-900 line-clamp-1 group-hover:text-saffron transition-colors">{item.name}</p>
+                          <p className="text-xs text-navy-500 font-bold mt-1">₹{item.price?.toLocaleString() || 0}</p>
+                        </div>
+                        <ChevronDown className="w-4 h-4 text-navy-200 -rotate-90 group-hover:text-saffron transition-colors" />
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
+        </>
       )}
 
       {/* Mobile Sidebar Overlay */}
-        {isSidebarOpen && (
-            <div className="fixed inset-0 bg-black/60 z-[60] lg:hidden" onClick={() => setIsSidebarOpen(false)}>
-                <div className="w-64 h-screen bg-navy-900 p-8 flex flex-col gap-6 animate-in slide-in-from-left duration-300" onClick={e => e.stopPropagation()}>
-                    <div className="flex justify-between items-center mb-8">
-                        <span className="font-bold text-white text-lg">Menu</span>
-                        <X className="w-6 h-6 text-white cursor-pointer" onClick={() => setIsSidebarOpen(false)} />
-                    </div>
-                    {NAV_LINKS.map((link) => (
-                        <Link
-                            key={link.href}
-                            href={link.href}
-                            onClick={() => setIsSidebarOpen(false)}
-                            className={cn(
-                                "text-lg font-medium transition-colors",
-                                pathname === link.href ? "text-saffron" : "text-white"
-                            )}
-                        >
-                            {link.name}
-                        </Link>
-                    ))}
-                </div>
+      {isSidebarOpen && (
+        <div className="fixed inset-0 bg-black/60 z-[60] lg:hidden" onClick={() => setIsSidebarOpen(false)}>
+          <div className="w-64 h-screen bg-navy-900 p-8 flex flex-col gap-6 animate-in slide-in-from-left duration-300" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-8">
+              <span className="font-bold text-white text-lg">Menu</span>
+              <X className="w-6 h-6 text-white cursor-pointer" onClick={() => setIsSidebarOpen(false)} />
             </div>
-        )}
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setIsSidebarOpen(false)}
+                className={cn(
+                  "text-lg font-medium transition-colors",
+                  pathname === link.href ? "text-saffron" : "text-white"
+                )}
+              >
+                {link.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

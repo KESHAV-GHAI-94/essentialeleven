@@ -78,3 +78,20 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Checkout Autocomplete Override */
+.checkout-autocomplete > div {
+  background-color: white !important;
+  border-color: #cbd5e1 !important;
+  border-radius: 0.75rem !important;
+  padding: 0.25rem 0.5rem !important;
+}
+
+.checkout-autocomplete > div:hover {
+  border-color: #F59E0B !important;
+}
+
+.checkout-autocomplete input {
+  font-weight: 600 !important;
+  color: #0F172A !important;
+}

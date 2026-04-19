@@ -1,5 +1,5 @@
 import { ProductController } from "../../../../backend/src/controllers/product.controller.js";
-import { ProductCard } from "@/components/products/ProductCard";
+import { ClientProductGrid } from "@/components/shop/ClientProductGrid";
 import { ShoppingBag } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -33,28 +33,9 @@ export default async function ShopPage() {
         </p>
       </div>
 
-      {/* Grid */}
+      {/* Grid Platform */}
       <div className="max-w-7xl mx-auto px-4 py-16">
-        <div className="flex justify-between items-center mb-12">
-          <div>
-            <h2 className="text-2xl font-bold text-navy-900">All Products</h2>
-            <p className="text-navy-400">{products.length} Items</p>
-          </div>
-          <div className="flex gap-4">
-             {/* Filter placeholder for later */}
-             <select className="bg-navy-50 border-none text-navy-600 text-sm rounded-lg px-4 py-2 focus:ring-2 focus:ring-saffron">
-                <option>Newest First</option>
-                <option>Price: Low to High</option>
-                <option>Price: High to Low</option>
-             </select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {products.map((product: any) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        <ClientProductGrid initialProducts={products} />
       </div>
     </div>
   );

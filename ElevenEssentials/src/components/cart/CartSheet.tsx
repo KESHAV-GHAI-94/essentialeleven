@@ -5,6 +5,7 @@ import { SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components
 import { Button } from "@/components/ui/button";
 import { ShoppingBag, Trash2, Plus, Minus } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 export function CartSheet() {
   const { items, removeItem, updateQuantity, getCartTotal } = useCartStore();
@@ -17,6 +18,26 @@ export function CartSheet() {
           Shopping Cart ({items.length})
         </SheetTitle>
       </SheetHeader>
+
+      {/* Free Shipping Progress */}
+      {items.length > 0 && (
+        <div className="px-6 py-4 bg-navy-50/30 border-b border-navy-50">
+          <div className="flex justify-between items-center mb-2">
+            <p className="text-xs font-bold text-navy-600 uppercase tracking-wider">
+              {getCartTotal() >= 2000 
+                ? "🎉 You've unlocked Free Shipping!" 
+                : `Add ₹${(2000 - getCartTotal()).toLocaleString()} more for Free Shipping`}
+            </p>
+            <span className="text-[10px] font-bold text-navy-400">THRESHOLD: ₹2,000</span>
+          </div>
+          <div className="w-full h-1.5 bg-navy-100 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-saffron transition-all duration-500" 
+              style={{ width: `${Math.min((getCartTotal() / 2000) * 100, 100)}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       <div className="flex-grow overflow-y-auto p-6 space-y-6">
         {items.length === 0 ? (
@@ -79,9 +100,18 @@ export function CartSheet() {
             <span className="text-navy-600 font-medium">Subtotal</span>
             <span className="text-2xl font-bold text-navy-900">₹{getCartTotal().toLocaleString()}</span>
           </div>
-          <Button className="w-full bg-navy hover:bg-navy-800 text-white py-6 rounded-xl font-bold text-lg shadow-lg hover:shadow-navy-200 transition-all">
-            Secure Checkout
-          </Button>
+          <div className="flex flex-col gap-3">
+            <Link href="/checkout" className="w-full">
+              <Button className="w-full bg-saffron hover:bg-saffron-400 text-navy-900 h-16 rounded-2xl font-extrabold text-xl shadow-xl transition-all hover:scale-[1.02] active:scale-95 mt-6">
+                Checkout Now
+              </Button>
+            </Link>
+            <Link href="/cart" className="w-full">
+              <Button variant="outline" className="w-full border-navy-200 text-navy-600 h-14 rounded-xl font-bold hover:bg-navy-50">
+                View Full Cart
+              </Button>
+            </Link>
+          </div>
           <p className="text-center text-[11px] text-navy-400">
             Taxes and shipping calculated at checkout.
           </p>

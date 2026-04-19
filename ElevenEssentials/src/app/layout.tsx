@@ -8,6 +8,8 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { Analytics } from "@/components/analytics/Analytics";
+import { ScrollToTop } from "@/components/layout/ScrollToTop";
+import { CartSync } from "@/components/cart/CartSync";
 
 const outfit = Outfit({ subsets: ["latin"] });
 
@@ -28,6 +30,7 @@ export default function RootLayout({
           <Analytics />
           <AnnouncementBar />
           <Navbar />
+          <CartSync />
           <main className="flex-grow">
             {children}
           </main>

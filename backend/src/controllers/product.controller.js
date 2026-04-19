@@ -9,4 +9,8 @@ export class ProductController {
   static async listAll() {
     return await ProductService.getAll();
   }
+
+  static async getById(id) {
+    return await ProductService.getById(id);
+  }
 }

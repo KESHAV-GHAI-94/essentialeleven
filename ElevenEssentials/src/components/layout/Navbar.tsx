@@ -43,6 +43,7 @@ export function Navbar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [activeMegaMenu, setActiveMegaMenu] = useState<string | null>(null);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -171,16 +172,58 @@ export function Navbar() {
           </div>
       )}
 
-      {/* Search Overlay */}
+      {/* Search Overlay & Autocomplete */}
       {isSearchOpen && (
-          <div className="absolute top-full left-0 right-0 bg-navy-900 p-6 animate-in fade-in duration-200">
-              <div className="max-w-3xl mx-auto relative capitalize">
-                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-navy-400 w-5 h-5" />
+          <div className="absolute top-full left-0 right-0 bg-navy-900 p-6 animate-in fade-in duration-200 shadow-2xl z-50">
+              <div className="max-w-3xl mx-auto relative">
+                   <Search className="absolute left-4 top-[17px] text-navy-400 w-5 h-5" />
                    <input 
                       autoFocus
                       placeholder="Search for premium essentials..." 
                       className="w-full bg-navy-800 border-none rounded-lg pl-12 pr-4 py-4 text-white placeholder:text-navy-500 focus:ring-2 focus:ring-saffron"
+                      onChange={async (e) => {
+                         const query = e.target.value;
+                         if (!query) {
+                           setSearchResults([]);
+                           return;
+                         }
+                         try {
+                           const res = await fetch('https://getmeilimeilisearchv190-production-3be0.up.railway.app/indexes/products/search', {
+                             method: 'POST',
+                             headers: {
+                               'Authorization': 'Bearer 6u0mgssp89wnnefdwroyvp3ef973uzvu',
+                               'Content-Type': 'application/json'
+                             },
+                             body: JSON.stringify({ q: query, limit: 5 })
+                           });
+                           const data = await res.json();
+                           if (data.hits) setSearchResults(data.hits);
+                         } catch (err) {
+                           console.error("Meilisearch Error:", err);
+                         }
+                      }}
                    />
+                   
+                   {/* Dropdown Autocomplete Task 6 Implementation */}
+                   {(searchResults.length > 0 || document.activeElement?.tagName === "INPUT") && (
+                     <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-xl shadow-2xl p-4 border border-navy-100 flex flex-col gap-2">
+                        <p className="text-xs uppercase tracking-widest text-navy-400 font-bold mb-2">
+                          {searchResults.length > 0 ? "Suggested Products" : "Type to search..."}
+                        </p>
+                        
+                        {searchResults.map((item: any) => (
+                          <Link key={item.id} href={`/shop/${item.id}`} className="flex items-center gap-4 p-3 hover:bg-navy-50 border border-transparent hover:border-navy-100 transition-colors rounded-lg" onClick={() => setIsSearchOpen(false)}>
+                             <div className="w-12 h-12 bg-navy-100 rounded overflow-hidden shrink-0">
+                               <img src={item.image || "/images/hero/meridian.jpg"} className="w-full h-full object-cover" />
+                             </div>
+                             <div>
+                                <p className="font-bold text-navy-900 line-clamp-1">{item.name}</p>
+                                <p className="text-xs text-navy-500 font-medium">₹{item.price?.toLocaleString() || 0}</p>
+                             </div>
+                          </Link>
+                        ))}
+                     </div>
+                   )}
               </div>
           </div>
       )}

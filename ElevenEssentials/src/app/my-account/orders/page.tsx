@@ -22,28 +22,26 @@ interface Order {
   items: OrderItem[];
 }
 
+import { PaymentService } from "@/services/payment.service";
+import { useSession } from "next-auth/react";
+
 export default function OrdersPage() {
+  const { data: session } = useSession();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Mock fetch orders
-    setTimeout(() => {
-      setOrders([
-        {
-          id: "ORD-928472",
-          createdAt: new Date().toISOString(),
-          total: 12499,
-          status: 'PROCESSING',
-          items: [
-            { id: "1", name: "Meridian Premium Chronograph", price: 10999, quantity: 1, image: "/images/hero/meridian.jpg" },
-            { id: "2", name: "Leather Strap Polish", price: 1500, quantity: 1, image: "/images/hero/obsididan.jpg" }
-          ]
-        }
-      ]);
-      setLoading(false);
-    }, 1000);
-  }, []);
+    if (session?.user?.id) {
+       PaymentService.getUserOrders(session.user.id)
+         .then((res: any) => {
+            setOrders(res || []);
+         })
+         .catch(err => console.error("Failed to fetch orders:", err))
+         .finally(() => setLoading(false));
+    } else if (session === null) {
+       setLoading(false); // Not logged in
+    }
+  }, [session]);
 
   if (loading) {
     return (

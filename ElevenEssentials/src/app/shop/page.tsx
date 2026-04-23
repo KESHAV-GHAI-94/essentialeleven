@@ -10,6 +10,7 @@ export default async function ShopPage() {
   // Map raw DB data to UI format
   const products = productsRaw.map((p: any) => ({
     id: p.id,
+    variantId: p.variants?.[0]?.id || "", // Specifically pass the first variant's ID
     name: p.name,
     price: p.variants?.[0]?.price || 0,
     image: p.images?.[0] || "",

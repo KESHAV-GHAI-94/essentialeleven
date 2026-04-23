@@ -5,12 +5,14 @@ import Link from "next/link";
 import { Plus, Heart } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 import { useRecentlyViewed } from "@/store/recently-viewed";
+import { useWishlistStore } from "@/store/wishlist";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { trackAddToCart } from "@/lib/pixel";
 
 export interface Product {
   id: string;
+  variantId: string;
   name: string;
   price: number;
   mrp?: number;
@@ -23,12 +25,14 @@ export interface Product {
 export function ProductCard({ product }: { product: Product }) {
   const addItem = useCartStore((state) => state.addItem);
   const addRecent = useRecentlyViewed((state) => state.addItem);
+  const { toggleItem, isWishlisted } = useWishlistStore();
+  const wishlisted = isWishlisted(product.id);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
     addItem({
-      id: product.id,
+      id: `${product.id}-${product.variantId}`,
       productId: product.id,
       name: product.name,
       price: product.price,
@@ -69,10 +73,27 @@ export function ProductCard({ product }: { product: Product }) {
 
         {/* Wishlist Button */}
         <button 
-          className="absolute top-3 right-3 z-10 p-2.5 bg-white/90 backdrop-blur-sm shadow-sm rounded-full text-navy-400 hover:text-red-500 hover:bg-white transition-colors opacity-0 group-hover:opacity-100 translate-y-[-10px] group-hover:translate-y-0"
-          onClick={(e) => { e.stopPropagation(); e.preventDefault(); /* Add to wishlist logic */ }}
+          className={`absolute top-3 right-3 z-10 p-2.5 bg-white/90 backdrop-blur-sm shadow-sm rounded-full transition-all opacity-0 group-hover:opacity-100 translate-y-[-10px] group-hover:translate-y-0 ${
+            wishlisted
+              ? "text-red-500 opacity-100 translate-y-0"
+              : "text-navy-400 hover:text-red-500 hover:bg-white"
+          }`}
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            toggleItem({
+              id: product.id,
+              name: product.name,
+              price: product.price,
+              mrp: product.mrp,
+              image: product.image,
+              category: product.category,
+              discount: product.discount,
+            });
+          }}
+          title={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
         >
-          <Heart className="w-4 h-4 transition-transform hover:scale-110" />
+          <Heart className={`w-4 h-4 transition-transform hover:scale-110 ${wishlisted ? "fill-red-500" : ""}`} />
         </button>
 
         {/* Add to cart */}

@@ -1,10 +1,22 @@
+import { prisma } from '../utils/prisma.js';
+
 export class WhatsAppService {
   static async sendOrderMessage(phone, orderId, total) {
+    // 1. Fetch Settings & Check Toggle
+    const settings = await prisma.storeSettings.findUnique({
+      where: { id: "global_settings" }
+    });
+
+    if (settings && settings.notifyOrderWhatsapp === false) {
+      console.log("WhatsApp notifications disabled in settings. Skipping.");
+      return { success: true, skipped: true };
+    }
+
     const accessToken = process.env.META_WHATSAPP_TOKEN;
     const phoneNumberId = process.env.META_PHONE_NUMBER_ID;
 
     if (!accessToken || !phoneNumberId) {
-      console.warn("WhatsApp credentials missing. Skipping message.");
+      console.warn("WhatsApp credentials (META_TOKEN / ID) missing in ENV. Skipping.");
       return { success: false, message: "Credentials missing" };
     }
 
@@ -17,7 +29,7 @@ export class WhatsAppService {
         },
         body: JSON.stringify({
           messaging_product: "whatsapp",
-          to: phone,
+          to: phone.toString(),
           type: "template",
           template: {
             name: "order_confirmation",

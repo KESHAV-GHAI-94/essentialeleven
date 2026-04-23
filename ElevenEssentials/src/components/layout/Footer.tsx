@@ -1,14 +1,42 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Facebook, Instagram, Twitter, Mail, ArrowRight } from "lucide-react";
 
+const API_BASE_URL = "http://localhost:4000";
+
 export function Footer() {
+  const [links, setLinks] = useState<any[]>([]);
+  const [storeSettings, setStoreSettings] = useState<any>(null);
+
+  useEffect(() => {
+    // Sync Footer Links
+    fetch(`${API_BASE_URL}/api/settings/footer`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setLinks(data);
+      })
+      .catch(err => console.error("Footer link sync error:", err));
+
+    // Sync Social Settings
+    fetch(`${API_BASE_URL}/api/settings/store`)
+      .then(res => res.json())
+      .then(data => {
+        if (data) setStoreSettings(data);
+      })
+      .catch(err => console.error("Store settings sync error:", err));
+  }, []);
+
   const socialIcons = [
-    { icon: Facebook, name: 'Facebook' },
-    { icon: Instagram, name: 'Instagram' },
-    { icon: Twitter, name: 'Twitter' }
+    { icon: Facebook, name: 'facebook' },
+    { icon: Instagram, name: 'instagram' },
+    { icon: Twitter, name: 'twitter' }
   ];
+
+  const getLinksByGroup = (groupName: string) => {
+    return links.filter(l => l.group === groupName);
+  };
 
   return (
     <footer className="bg-navy-900 pt-20 pb-10 px-6">
@@ -30,8 +58,15 @@ export function Footer() {
             <div className="flex gap-4">
               {socialIcons.map((item, i) => {
                 const Icon = item.icon;
+                const link = storeSettings?.socialLinks?.[item.name] || "#";
                 return (
-                  <Link key={i} href="#" aria-label={item.name} className="p-2 bg-navy-800 text-navy-100 hover:bg-saffron hover:text-navy-900 transition-all rounded">
+                  <Link 
+                    key={i} 
+                    href={link} 
+                    target={link !== "#" ? "_blank" : undefined}
+                    aria-label={item.name} 
+                    className="p-2 bg-navy-800 text-navy-100 hover:bg-saffron hover:text-navy-900 transition-all rounded"
+                  >
                     {Icon && <Icon className="w-4 h-4" />}
                   </Link>
                 );
@@ -39,37 +74,60 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Links */}
+          {/* Collections */}
           <div>
             <h4 className="text-white font-bold uppercase tracking-widest text-xs mb-6">Collections</h4>
             <ul className="space-y-4">
-              {["Obsidian Store", "Meridian Logic", "Essential Staples", "Limited Drops"].map((item) => (
-                <li key={item}>
-                  <Link href="/shop" className="text-navy-100/60 hover:text-saffron transition-colors text-sm">
-                    {item}
+              {getLinksByGroup("Collections").map((item) => (
+                <li key={item.id}>
+                  <Link href={item.url} className="text-navy-100/60 hover:text-saffron transition-colors text-sm">
+                    {item.label}
                   </Link>
                 </li>
               ))}
+              {getLinksByGroup("Collections").length === 0 && (
+                ["Obsidian Store", "Meridian Logic", "Essential Staples"].map(item => (
+                   <li key={item}>
+                     <Link href="/shop" className="text-navy-100/60 hover:text-saffron transition-colors text-sm">{item}</Link>
+                   </li>
+                ))
+              )}
             </ul>
           </div>
 
-          {/* Support */}
+          {/* Experience */}
           <div>
             <h4 className="text-white font-bold uppercase tracking-widest text-xs mb-6">Experience</h4>
             <ul className="space-y-4">
-              {["About Us", "Track Order", "Warranty & Care", "Sustainability"].map((item) => (
-                <li key={item}>
-                  <Link href="#" className="text-navy-100/60 hover:text-saffron transition-colors text-sm">
-                    {item}
+              {getLinksByGroup("Experience").map((item) => (
+                <li key={item.id}>
+                  <Link href={item.url} className="text-navy-100/60 hover:text-saffron transition-colors text-sm">
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+              {getLinksByGroup("Experience").length === 0 && (
+                ["About Us", "Track Order", "Warranty & Care"].map(item => (
+                   <li key={item}>
+                     <Link href="#" className="text-navy-100/60 hover:text-saffron transition-colors text-sm">{item}</Link>
+                   </li>
+                ))
+              )}
+            </ul>
+          </div>
+
+          {/* Newsletter / Circle */}
+          <div>
+            <h4 className="text-white font-bold uppercase tracking-widest text-xs mb-6">Join the Circle</h4>
+            <ul className="space-y-4 mb-6">
+              {getLinksByGroup("Join the Circle").map((item) => (
+                <li key={item.id}>
+                  <Link href={item.url} className="text-navy-100/60 hover:text-saffron transition-colors text-sm">
+                    {item.label}
                   </Link>
                 </li>
               ))}
             </ul>
-          </div>
-
-          {/* Newsletter */}
-          <div>
-            <h4 className="text-white font-bold uppercase tracking-widest text-xs mb-6">Join the Circle</h4>
             <p className="text-navy-100/60 text-sm mb-6">Stay informed on limited drops and premium updates.</p>
             <div className="flex bg-navy-800 p-1 rounded group focus-within:ring-1 focus-within:ring-saffron">
               <input 

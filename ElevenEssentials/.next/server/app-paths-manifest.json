@@ -1,8 +1,9 @@
 {
+  "/page": "app/page.js",
   "/shop/[id]/page": "app/shop/[id]/page.js",
+  "/checkout/page": "app/checkout/page.js",
   "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
   "/admin/products/page": "app/admin/products/page.js",
-  "/admin/categories/page": "app/admin/categories/page.js",
-  "/admin/customers/page": "app/admin/customers/page.js",
+  "/admin/page": "app/admin/page.js",
   "/admin/coupons/page": "app/admin/coupons/page.js"
 }

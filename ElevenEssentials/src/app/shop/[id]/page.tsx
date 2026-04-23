@@ -40,8 +40,8 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
   // Normalize Prisma format to required UI structure
   const product = {
     ...productRaw,
-    mrp: productRaw.variants?.[0]?.price ? productRaw.variants[0].price * 1.25 : null, // Mocking strict MRP logic if missing
-    category: "Product" // Ideally fetch category name via relations
+    mrp: productRaw.variants?.[0]?.originalPrice || productRaw.variants?.[0]?.price || 0,
+    category: productRaw.category?.name || "Premium Collection"
   };
 
   return (

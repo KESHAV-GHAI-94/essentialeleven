@@ -6,6 +6,9 @@ export interface CartItem {
   productId: string;
   name: string;
   price: number;
+  originalPrice?: number;
+  costPrice?: number;
+  markup?: number;
   image?: string;
   quantity: number;
   attributes?: Record<string, string>; // E.g. { Size: "M", Color: "Navy" }

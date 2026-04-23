@@ -128,11 +128,11 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="mt-6">
+            <div className="mt-6 grid grid-cols-2 gap-3">
               <Button
                 type="button"
                 onClick={() => signIn("google", { callbackUrl: "/" })}
-                className="w-full flex items-center justify-center gap-3 bg-white border border-navy-200 text-navy-900 hover:bg-navy-50 py-3 transition-colors rounded-md"
+                className="w-full flex items-center justify-center gap-2.5 bg-white border border-navy-200 text-navy-900 hover:bg-navy-50 py-3 transition-colors rounded-md"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -141,6 +141,27 @@ export default function LoginPage() {
                   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                 </svg>
                 Google
+              </Button>
+              <Button
+                type="button"
+                onClick={() => signIn("facebook", { callbackUrl: "/" })}
+                className="w-full flex items-center justify-center gap-2.5 bg-white border border-navy-200 text-navy-900 hover:bg-navy-50 py-3 transition-colors rounded-md"
+              >
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                  <defs>
+                    <linearGradient id="ig-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#FFDC80"/>
+                      <stop offset="25%" stopColor="#F77737"/>
+                      <stop offset="50%" stopColor="#E1306C"/>
+                      <stop offset="75%" stopColor="#C13584"/>
+                      <stop offset="100%" stopColor="#833AB4"/>
+                    </linearGradient>
+                  </defs>
+                  <rect x="2" y="2" width="20" height="20" rx="5" stroke="url(#ig-gradient)" strokeWidth="2"/>
+                  <circle cx="12" cy="12" r="5" stroke="url(#ig-gradient)" strokeWidth="2"/>
+                  <circle cx="17.5" cy="6.5" r="1.5" fill="url(#ig-gradient)"/>
+                </svg>
+                Instagram
               </Button>
             </div>
           </div>

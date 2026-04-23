@@ -16,6 +16,7 @@ import {
   TrendingUp,
   Store,
   Layers,
+  Award,
   ExternalLink
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,7 @@ const menuItems = [
   { name: "Orders", icon: ShoppingBag, href: "/admin/orders" },
   { name: "Products", icon: Package, href: "/admin/products" },
   { name: "Categories", icon: Layers, href: "/admin/categories" },
+  { name: "Brands", icon: Award, href: "/admin/brands" },
   { name: "Customers", icon: Users, href: "/admin/customers" },
   { name: "Coupons", icon: Tag, href: "/admin/coupons" },
   { name: "Vendors", icon: Store, href: "/admin/vendors" },

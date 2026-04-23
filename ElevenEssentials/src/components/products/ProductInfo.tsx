@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Minus, Plus, Heart, Share2, ShieldCheck, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/store/cart";
+import { useWishlistStore } from "@/store/wishlist";
 import { trackAddToCart } from "@/lib/pixel";
 import { PincodeEstimator } from "./PincodeEstimator";
 
@@ -11,6 +12,9 @@ interface ProductVariant {
   id: string;
   name: string;
   price: number;
+  originalPrice?: number;
+  costPrice?: number;
+  markup?: number;
   stock: number;
   attributes: any;
 }
@@ -30,8 +34,10 @@ export function ProductInfo({ product }: ProductInfoProps) {
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant>(product.variants?.[0]);
   const [quantity, setQuantity] = useState(1);
   const addItem = useCartStore((state) => state.addItem);
+  const { toggleItem, isWishlisted } = useWishlistStore();
+  const wishlisted = isWishlisted(product.id);
 
-  const mrp = product.mrp || (selectedVariant.price * 1.25); // Simulated MRP
+  const mrp = selectedVariant.originalPrice || selectedVariant.price;
   const discount = Math.round(((mrp - selectedVariant.price) / mrp) * 100);
   const savings = mrp - selectedVariant.price;
 
@@ -45,11 +51,13 @@ export function ProductInfo({ product }: ProductInfoProps) {
       productId: product.id,
       name: `${product.name} - ${selectedVariant.name}`,
       price: selectedVariant.price,
-      image: product.images[0] || "/images/hero/obsidian.jpg",
+      costPrice: selectedVariant.costPrice,
+      markup: selectedVariant.markup,
+      image: (product as any).images?.[0] || "/images/hero/obsidian.jpg",
       quantity,
       attributes: selectedVariant.attributes
     };
-    addItem(item);
+    addItem(item as any);
     trackAddToCart(item);
   };
 
@@ -135,8 +143,26 @@ export function ProductInfo({ product }: ProductInfoProps) {
         )}
 
         <div className="flex gap-4 mt-2">
-           <Button variant="outline" className="flex-1 rounded-xl h-12 font-bold text-navy-600 shadow-sm border-navy-100 gap-2 hover:bg-navy-50">
-             <Heart className="w-5 h-5" /> Wishlist
+           <Button
+             variant="outline"
+             className={`flex-1 rounded-xl h-12 font-bold shadow-sm border-navy-100 gap-2 transition-all ${
+               wishlisted
+                 ? "bg-red-50 text-red-500 border-red-200 hover:bg-red-100"
+                 : "text-navy-600 hover:bg-navy-50"
+             }`}
+             onClick={() =>
+               toggleItem({
+                 id: product.id,
+                 name: product.name,
+                 price: selectedVariant.price,
+                 mrp: product.mrp,
+                 image: (product as any).images?.[0] || "",
+                 category: product.category,
+               })
+             }
+           >
+             <Heart className={`w-5 h-5 ${wishlisted ? "fill-red-500" : ""}`} />
+             {wishlisted ? "Wishlisted" : "Wishlist"}
            </Button>
            <Button variant="outline" className="flex-1 rounded-xl h-12 font-bold text-navy-600 shadow-sm border-navy-100 gap-2 hover:bg-navy-50">
              <Share2 className="w-5 h-5" /> Share

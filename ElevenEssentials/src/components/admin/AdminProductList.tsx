@@ -78,7 +78,7 @@ export function AdminProductList({ onEdit, onAdd }: AdminProductListProps) {
                     <div className="flex items-center gap-4 text-left">
                       <div className="w-12 h-12 bg-navy-50 rounded-xl overflow-hidden relative border border-navy-100/50">
                         {product.images[0] ? (
-                          <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
+                          <Image src={product.images[0]} alt={product.name} fill className="object-cover" unoptimized />
                         ) : (
                           <div className="flex items-center justify-center h-full"><ImageIcon size={16} className="text-navy-200" /></div>
                         )}
@@ -90,7 +90,16 @@ export function AdminProductList({ onEdit, onAdd }: AdminProductListProps) {
                     </div>
                   </td>
                   <td className="p-4">
-                    <span className="text-xs font-bold text-navy-600 bg-navy-50 px-2 py-1 rounded-lg">Lifestyle</span>
+                    <div className="space-y-1">
+                      <span className="text-xs font-bold text-navy-600 bg-navy-50 px-2 py-1 rounded-lg block w-fit">
+                        {product.category?.name || "Uncategorized"}
+                      </span>
+                      {product.brand && (
+                        <span className="text-[10px] font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-100 block w-fit">
+                          {product.brand.name}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="p-4">
                     <p className="text-sm font-black text-navy-900">₹{product.variants?.[0]?.price?.toLocaleString() || "0"}</p>

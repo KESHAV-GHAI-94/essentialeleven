@@ -15,10 +15,12 @@ import {
   Package,
   Watch,
   Laptop,
-  Sparkles
+  Sparkles,
+  Heart
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useSyncRecentlyViewed } from "@/hooks/useSyncRecentlyViewed";
+import { useWishlistStore } from "@/store/wishlist";
 
 const NAV_LINKS = [
   { name: "Home", href: "/" },
@@ -40,6 +42,7 @@ export function Navbar() {
   const pathname = usePathname();
   const { data: session, status } = useSession();
   useSyncRecentlyViewed(); // Auto-syncs on login
+  const wishlistCount = useWishlistStore((s) => s.items.length);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -131,6 +134,20 @@ export function Navbar() {
             <Search className="w-5 h-5" />
           </button>
 
+          {/* Wishlist Icon */}
+          <Link
+            href="/wishlist"
+            className="relative p-2 hover:bg-white/10 rounded-full transition-colors text-white"
+            title="My Wishlist"
+          >
+            <Heart className="w-5 h-5" />
+            {wishlistCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center px-1 shadow-sm">
+                {wishlistCount}
+              </span>
+            )}
+          </Link>
+
           {status === "authenticated" ? (
             <div className="relative group">
               <button className="p-2 hover:bg-white/10 rounded-full transition-colors text-white">
@@ -151,11 +168,19 @@ export function Navbar() {
                       <LayoutDashboard className="w-4 h-4" /> Admin Panel
                     </Link>
                   )}
-                  <Link href="/account" className="flex items-center gap-3 px-4 py-2 text-sm text-navy-100 hover:bg-white/5 hover:text-saffron transition-colors">
+                  <Link href="/my-account" className="flex items-center gap-3 px-4 py-2 text-sm text-navy-100 hover:bg-white/5 hover:text-saffron transition-colors">
                     <User className="w-4 h-4" /> Account Settings
                   </Link>
-                  <Link href="/account/orders" className="flex items-center gap-3 px-4 py-2 text-sm text-navy-100 hover:bg-white/5 hover:text-saffron transition-colors">
+                  <Link href="/my-account/orders" className="flex items-center gap-3 px-4 py-2 text-sm text-navy-100 hover:bg-white/5 hover:text-saffron transition-colors">
                     <Package className="w-4 h-4" /> Order History
+                  </Link>
+                  <Link href="/wishlist" className="flex items-center gap-3 px-4 py-2 text-sm text-navy-100 hover:bg-white/5 hover:text-saffron transition-colors">
+                    <Heart className="w-4 h-4" /> My Wishlist
+                    {wishlistCount > 0 && (
+                      <span className="ml-auto bg-red-500 text-white text-[9px] font-black rounded-full px-1.5 py-0.5">
+                        {wishlistCount}
+                      </span>
+                    )}
                   </Link>
                 </div>
                 <div className="border-t border-white/5 py-2">

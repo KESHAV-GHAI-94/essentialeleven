@@ -14,12 +14,12 @@ interface MediaUploaderProps {
 
 export function MediaUploader({ onUploadComplete, maxFiles = 5, initialUrls = [] }: MediaUploaderProps) {
   const [files, setFiles] = useState<any[]>(
-    initialUrls.map(url => ({
-      name: url.split('/').pop() || 'Existing Image',
+    initialUrls.map((url, idx) => ({
+      name: `img-${idx}-${Date.now()}`, // Truly unique ID
       preview: url,
       status: 'complete',
       url: url,
-      type: 'image/jpeg' // Default type for existing
+      type: 'image/jpeg'
     }))
   );
   const [uploading, setUploading] = useState(false);
@@ -48,8 +48,8 @@ export function MediaUploader({ onUploadComplete, maxFiles = 5, initialUrls = []
     maxFiles
   });
 
-  const removeFile = (name: string) => {
-    const updatedFiles = files.filter(f => f.name !== name);
+  const removeFile = (id: string) => {
+    const updatedFiles = files.filter(f => (f.url || f.preview) !== id);
     setFiles(updatedFiles);
     // Notify parent of deletion
     const urls = updatedFiles
@@ -99,7 +99,12 @@ export function MediaUploader({ onUploadComplete, maxFiles = 5, initialUrls = []
         const data = await response.json();
         urls.push(data.secure_url);
         
-        setFiles(prev => prev.map(f => f.name === file.name ? { ...f, status: 'complete', url: data.secure_url } : f));
+        setFiles(prev => prev.map(f => f.name === file.name ? { 
+          ...f, 
+          status: 'complete', 
+          url: data.secure_url,
+          preview: data.secure_url // Update preview to remote URL
+        } : f));
       }
       onUploadComplete(urls);
     } catch (error: any) {
@@ -133,15 +138,27 @@ export function MediaUploader({ onUploadComplete, maxFiles = 5, initialUrls = []
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
             {files.map((file) => (
               <div key={file.name} className="relative aspect-square rounded-2xl overflow-hidden group border border-navy-50 bg-navy-50/30">
-                {file.type?.startsWith('image/') ? (
-                  <Image src={file.preview} alt="preview" fill className="object-cover" />
+                {file.preview && !file.error && (file.type?.startsWith('image/') || file.preview.match(/\.(jpg|jpeg|png|webp|gif|svg)$|blob:/i)) ? (
+                  <Image 
+                    src={file.preview} 
+                    alt="preview" 
+                    fill 
+                    className="object-cover" 
+                    unoptimized
+                    onError={() => {
+                      setFiles(prev => prev.map(f => f.name === file.name ? { ...f, error: true } : f));
+                    }}
+                  />
                 ) : (
-                  <div className="flex items-center justify-center h-full"><File className="text-navy-200" /></div>
+                  <div className="flex items-center justify-center h-full bg-navy-50/50">
+                    <File className="text-navy-200" size={24} />
+                    {file.error && <div className="absolute inset-0 bg-red-500/10 flex items-center justify-center"><X className="text-red-500" size={24} /></div>}
+                  </div>
                 )}
                 
                 <div className="absolute inset-0 bg-navy-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                    <button 
-                     onClick={() => removeFile(file.name)}
+                     onClick={() => removeFile(file.url || file.preview)}
                      className="p-2 bg-red-500 text-white rounded-full hover:scale-110 transition-transform"
                    >
                      <X size={16} />

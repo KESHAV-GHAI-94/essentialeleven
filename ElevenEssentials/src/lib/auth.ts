@@ -1,6 +1,7 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
+import FacebookProvider from "next-auth/providers/facebook";
 
 export const authOptions: NextAuthOptions = {
   session: {
@@ -39,12 +40,18 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
     }),
+    FacebookProvider({
+      clientId: process.env.FACEBOOK_CLIENT_ID || "",
+      clientSecret: process.env.FACEBOOK_CLIENT_SECRET || "",
+    }),
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      if (account?.provider === "google") {
+      // Handle Google and Facebook/Instagram OAuth
+      if (account?.provider === "google" || account?.provider === "facebook") {
         try {
-          const res = await fetch("http://localhost:4000/api/users/google", {
+          // Using 127.0.0.1 instead of localhost for more stable internal handshakes on Windows
+          const res = await fetch("http://127.0.0.1:4000/api/users/google", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -62,7 +69,7 @@ export const authOptions: NextAuthOptions = {
           }
           return false;
         } catch (error) {
-          console.error("Failed to create Google User in DB:", error);
+          console.error(`Failed to create ${account.provider} User in DB:`, error);
           return false;
         }
       }
@@ -84,3 +91,4 @@ export const authOptions: NextAuthOptions = {
     }
   }
 };
+

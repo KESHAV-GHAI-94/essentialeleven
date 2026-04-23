@@ -110,7 +110,7 @@ export const AdminController = {
      try {
        const products = await prisma.product.findMany({
          orderBy: { createdAt: "desc" },
-         include: { variants: true }
+         include: { variants: true, brand: true, category: true }
        });
        res.json(products);
      } catch (error) {
@@ -119,11 +119,11 @@ export const AdminController = {
   },
 
   createProduct: async (req, res) => {
-     const { name, slug, description, categoryId, images, isActive, variants } = req.body;
+     const { name, slug, description, categoryId, brandId, images, isActive, variants } = req.body;
      try {
        const product = await prisma.product.create({
          data: {
-           name, slug, description, categoryId, images, isActive,
+           name, slug, description, categoryId, brandId, images, isActive,
            variants: {
              create: variants.map(({ id, productId, createdAt, updatedAt, ...rest }) => rest)
            }
@@ -138,7 +138,7 @@ export const AdminController = {
 
   updateProduct: async (req, res) => {
     const { id } = req.params;
-    const { name, slug, description, categoryId, images, isActive, variants } = req.body;
+    const { name, slug, description, categoryId, brandId, images, isActive, variants } = req.body;
     try {
       // Clean delete existing variants to avoid SKU conflicts or orphan records
       await prisma.variant.deleteMany({ where: { productId: id } });
@@ -146,7 +146,7 @@ export const AdminController = {
       const product = await prisma.product.update({
         where: { id },
         data: {
-          name, slug, description, categoryId, images, isActive,
+          name, slug, description, categoryId, brandId, images, isActive,
           variants: {
             create: variants.map(({ id, productId, createdAt, updatedAt, ...rest }) => rest)
           }
@@ -246,6 +246,52 @@ export const AdminController = {
     }
   },
 
+  getAllBrands: async (req, res) => {
+    try {
+      const brands = await prisma.brand.findMany({
+        orderBy: { name: "asc" },
+        include: { _count: { select: { products: true } } }
+      });
+      res.json(brands);
+    } catch (error) {
+       res.status(500).json({ error: "Failed to fetch brands" });
+    }
+  },
+
+  createBrand: async (req, res) => {
+    try {
+      const brand = await prisma.brand.create({
+        data: req.body
+      });
+      res.json(brand);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create brand" });
+    }
+  },
+
+  updateBrand: async (req, res) => {
+    const { id } = req.params;
+    try {
+      const brand = await prisma.brand.update({
+        where: { id },
+        data: req.body
+      });
+      res.json(brand);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update brand" });
+    }
+  },
+
+  deleteBrand: async (req, res) => {
+    const { id } = req.params;
+    try {
+      await prisma.brand.delete({ where: { id } });
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete brand" });
+    }
+  },
+
   getAllCoupons: async (req, res) => {
     try {
       const coupons = await prisma.coupon.findMany({
@@ -265,6 +311,16 @@ export const AdminController = {
       res.json(coupon);
     } catch (error) {
       res.status(500).json({ error: "Failed to create coupon" });
+    }
+  },
+
+  deleteCoupon: async (req, res) => {
+    const { id } = req.params;
+    try {
+      await prisma.coupon.delete({ where: { id } });
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete coupon" });
     }
   },
 

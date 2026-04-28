@@ -119,16 +119,25 @@ export const AdminController = {
   },
 
   createProduct: async (req, res) => {
-     const { name, slug, description, categoryId, brandId, images, isActive, variants } = req.body;
+     const { name, slug, description, categoryId, brandId, images, isActive, isNewArrival, isTrending, couponApplicable, variants } = req.body;
      try {
        const product = await prisma.product.create({
          data: {
-           name, slug, description, categoryId, brandId, images, isActive,
+           name, slug, description, categoryId, brandId, images,
+           isActive: isActive ?? true,
+           isNewArrival: isNewArrival ?? false,
+           isTrending: isTrending ?? false,
+           couponApplicable: couponApplicable || "yes",
            variants: {
              create: variants.map(({ id, productId, createdAt, updatedAt, ...rest }) => rest)
            }
          }
        });
+       
+       // Bust cache
+       const { redis } = await import("../utils/redis.js");
+       await redis.del("all_products_v_fresh_02");
+       
        res.json(product);
      } catch (error) {
        console.error("Create Product Error:", error);
@@ -138,24 +147,47 @@ export const AdminController = {
 
   updateProduct: async (req, res) => {
     const { id } = req.params;
-    const { name, slug, description, categoryId, brandId, images, isActive, variants } = req.body;
+    const { name, slug, description, categoryId, brandId, images, isActive, isNewArrival, isTrending, couponApplicable, variants } = req.body;
     try {
-      // Clean delete existing variants to avoid SKU conflicts or orphan records
       await prisma.variant.deleteMany({ where: { productId: id } });
-      
       const product = await prisma.product.update({
         where: { id },
         data: {
-          name, slug, description, categoryId, brandId, images, isActive,
+          name, slug, description, categoryId, brandId, images,
+          isActive: isActive ?? true,
+          isNewArrival: isNewArrival ?? false,
+          isTrending: isTrending ?? false,
+          couponApplicable: couponApplicable || "yes",
           variants: {
             create: variants.map(({ id, productId, createdAt, updatedAt, ...rest }) => rest)
           }
         }
       });
+      
+      // Bust cache
+      const { redis } = await import("../utils/redis.js");
+      await redis.del("all_products_v_fresh_02");
+      
       res.json(product);
     } catch (error) {
        console.error("Update Product Error:", error);
        res.status(500).json({ error: "Failed to update product" });
+    }
+  },
+
+  deleteProduct: async (req, res) => {
+    const { id } = req.params;
+    try {
+      await prisma.product.delete({ where: { id } });
+      
+      // Bust cache
+      const { redis } = await import("../utils/redis.js");
+      await redis.del("all_products_v_fresh_02");
+      
+      res.json({ message: "Product deleted successfully" });
+    } catch (error) {
+       console.error("Delete Product Error:", error);
+       res.status(500).json({ error: "Failed to delete product" });
     }
   },
 

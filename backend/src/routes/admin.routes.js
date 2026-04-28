@@ -12,6 +12,7 @@ router.post("/orders/:id/status", AdminController.updateOrderStatus);
 router.get("/products", AdminController.getAllProducts);
 router.post("/products", AdminController.createProduct);
 router.post("/products/:id", AdminController.updateProduct);
+router.delete("/products/:id", AdminController.deleteProduct);
 router.get("/customers", AdminController.getAllCustomers);
 router.get("/customers/:id", AdminController.getCustomerDetails);
 router.get("/inventory", AdminController.getInventory);

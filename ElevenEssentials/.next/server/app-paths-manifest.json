@@ -1,9 +1,9 @@
 {
-  "/page": "app/page.js",
-  "/shop/[id]/page": "app/shop/[id]/page.js",
   "/checkout/page": "app/checkout/page.js",
+  "/shop/page": "app/shop/page.js",
   "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
+  "/login/page": "app/login/page.js",
+  "/admin/coupons/page": "app/admin/coupons/page.js",
   "/admin/products/page": "app/admin/products/page.js",
-  "/admin/page": "app/admin/page.js",
-  "/admin/coupons/page": "app/admin/coupons/page.js"
+  "/admin/products/[id]/edit/page": "app/admin/products/[id]/edit/page.js"
 }

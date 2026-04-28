@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Trash2, Plus, Minus, ArrowLeft, ShoppingBag, ShieldCheck, Truck } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+
 import { useEffect, useState } from "react";
 
 export default function CartPage() {
@@ -37,7 +38,7 @@ export default function CartPage() {
   return (
     <div className="min-h-screen bg-navy-50/30 py-12 px-4 sm:px-8">
       <div className="max-w-6xl mx-auto">
-        
+
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
           <div>
@@ -52,7 +53,7 @@ export default function CartPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          
+
           {/* Left: Item List */}
           <div className="lg:col-span-2 space-y-4">
             {items.length === 0 ? (
@@ -74,7 +75,7 @@ export default function CartPage() {
                       <Image src={item.image} alt={item.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
                     )}
                   </div>
-                  
+
                   <div className="flex flex-col justify-between flex-1 py-1">
                     <div className="flex justify-between items-start">
                       <div>
@@ -90,21 +91,21 @@ export default function CartPage() {
                       <div className="flex items-center gap-6">
                         {/* Quantity UI */}
                         <div className="flex items-center border-2 border-navy-50 rounded-xl bg-white overflow-hidden shadow-sm">
-                          <button 
+                          <button
                             onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
                             className="p-3 text-navy-400 hover:bg-navy-50 transition-colors"
                           >
                             <Minus className="w-4 h-4" />
                           </button>
                           <span className="w-10 text-center font-black text-navy-900 border-x border-navy-50">{item.quantity}</span>
-                          <button 
+                          <button
                             onClick={() => updateQuantity(item.id, item.quantity + 1)}
                             className="p-3 text-navy-400 hover:bg-navy-50 transition-colors"
                           >
                             <Plus className="w-4 h-4" />
                           </button>
                         </div>
-                        <button 
+                        <button
                           onClick={() => moveToSaveForLater(item.id)}
                           className="text-xs font-bold text-navy-400 hover:text-navy-900 transition-colors uppercase tracking-widest border-b border-navy-100 pb-0.5"
                         >
@@ -141,8 +142,8 @@ export default function CartPage() {
                           <p className="text-xs font-bold text-saffron">₹{item.price.toLocaleString()}</p>
                         </div>
                         <div className="flex gap-4">
-                           <button onClick={() => moveToCart(item.id)} className="text-[10px] font-bold text-navy-900 uppercase tracking-wider hover:text-saffron transition-colors">Move to Cart</button>
-                           <button onClick={() => removeItem(item.id)} className="text-[10px] font-bold text-red-400 uppercase tracking-wider hover:text-red-600 transition-colors">Remove</button>
+                          <button onClick={() => moveToCart(item.id)} className="text-[10px] font-bold text-navy-900 uppercase tracking-wider hover:text-saffron transition-colors">Move to Cart</button>
+                          <button onClick={() => removeItem(item.id)} className="text-[10px] font-bold text-red-400 uppercase tracking-wider hover:text-red-600 transition-colors">Remove</button>
                         </div>
                       </div>
                     </div>
@@ -158,7 +159,7 @@ export default function CartPage() {
               <h2 className="text-2xl font-bold mb-8 flex items-center gap-3">
                 Order Summary
               </h2>
-              
+
               <div className="space-y-6">
                 <div className="flex justify-between text-navy-300 font-medium">
                   <span>Subtotal</span>
@@ -171,7 +172,7 @@ export default function CartPage() {
                     <span className="font-bold">-₹{discountAmount.toLocaleString()}</span>
                   </div>
                 )}
-                
+
                 <div className="flex justify-between text-navy-300 font-medium">
                   <span>Shipping</span>
                   <span className={`${shipping === 0 ? 'text-green-400' : 'text-white'} font-bold`}>
@@ -180,11 +181,11 @@ export default function CartPage() {
                 </div>
 
                 <div className="flex justify-between text-navy-300 font-medium">
-                   <div className="flex flex-col">
-                      <span>GST (18%)</span>
-                      <span className="text-[10px] opacity-50">Included in total</span>
-                   </div>
-                   <span className="text-white font-bold">₹{tax.toLocaleString()}</span>
+                  <div className="flex flex-col">
+                    <span>GST (18%)</span>
+                    <span className="text-[10px] opacity-50">Included in total</span>
+                  </div>
+                  <span className="text-white font-bold">₹{tax.toLocaleString()}</span>
                 </div>
 
                 <div className="h-px bg-white/10 my-6" />
@@ -203,36 +204,36 @@ export default function CartPage() {
                 </Link>
 
                 <div className="flex flex-col gap-3 pt-6 border-t border-white/5 opacity-60">
-                   <div className="flex items-center gap-2 text-[11px] font-bold tracking-wide uppercase">
-                     <ShieldCheck className="w-4 h-4 text-saffron" /> Secure SSL Encryption
-                   </div>
-                   <div className="flex items-center gap-2 text-[11px] font-bold tracking-wide uppercase">
-                     <Truck className="w-4 h-4 text-saffron" /> Express Delivery Available
-                   </div>
+                  <div className="flex items-center gap-2 text-[11px] font-bold tracking-wide uppercase">
+                    <ShieldCheck className="w-4 h-4 text-saffron" /> Secure SSL Encryption
+                  </div>
+                  <div className="flex items-center gap-2 text-[11px] font-bold tracking-wide uppercase">
+                    <Truck className="w-4 h-4 text-saffron" /> Express Delivery Available
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Promo Code Box */}
             <div className="bg-white rounded-2xl p-6 border border-navy-100 shadow-sm">
-               <h3 className="text-sm font-bold text-navy-900 uppercase tracking-wider mb-4">Have a Promo Code?</h3>
-               <div className="flex gap-2">
-                 <input 
-                   type="text" 
-                   placeholder="ENTER CODE" 
-                   className="flex-1 bg-navy-50 border-none rounded-xl px-4 text-xs font-bold focus:ring-1 focus:ring-saffron" 
-                   value={coupon}
-                   onChange={(e) => setCoupon(e.target.value)}
-                 />
-                 <Button 
-                   variant="outline" 
-                   className={`rounded-xl border-navy-200 font-bold ${isCouponApplied ? 'bg-green-50 text-green-600' : 'hover:bg-navy-50'}`}
-                   onClick={handleApplyCoupon}
-                   disabled={isCouponApplied}
-                 >
-                   {isCouponApplied ? "Applied" : "Apply"}
-                 </Button>
-               </div>
+              <h3 className="text-sm font-bold text-navy-900 uppercase tracking-wider mb-4">Have a Promo Code?</h3>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="ENTER CODE"
+                  className="flex-1 bg-navy-50 border-none rounded-xl px-4 text-xs font-bold focus:ring-1 focus:ring-saffron"
+                  value={coupon}
+                  onChange={(e) => setCoupon(e.target.value)}
+                />
+                <Button
+                  variant="outline"
+                  className={`rounded-xl border-navy-200 font-bold ${isCouponApplied ? 'bg-green-50 text-green-600' : 'hover:bg-navy-50'}`}
+                  onClick={handleApplyCoupon}
+                  disabled={isCouponApplied}
+                >
+                  {isCouponApplied ? "Applied" : "Apply"}
+                </Button>
+              </div>
             </div>
           </div>
 

@@ -78,23 +78,26 @@ model Brand {
 }
 
 model Product {
-  id          String    @id @default(cuid())
-  vendorId    String?
-  categoryId  String
-  name        String
-  slug        String    @unique
-  description String
-  images      String[]
-  videos      String[]
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  brandId     String?
-  brand       Brand?    @relation(fields: [brandId], references: [id])
-  category    Category  @relation(fields: [categoryId], references: [id])
-  vendor      Vendor?   @relation(fields: [vendorId], references: [id])
-  reviews     Review[]
-  variants    Variant[]
+  id               String    @id @default(cuid())
+  vendorId         String?
+  categoryId       String
+  name             String
+  slug             String    @unique
+  description      String
+  images           String[]
+  videos           String[]
+  isActive         Boolean   @default(true)
+  isNewArrival     Boolean   @default(false)
+  isTrending       Boolean   @default(false)
+  couponApplicable String    @default("yes")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  brandId          String?
+  brand            Brand?    @relation(fields: [brandId], references: [id])
+  category         Category  @relation(fields: [categoryId], references: [id])
+  vendor           Vendor?   @relation(fields: [vendorId], references: [id])
+  reviews          Review[]
+  variants         Variant[]
 }
 
 model Variant {

@@ -7,27 +7,48 @@ import {
   Search, 
   Edit2, 
   Trash2, 
-  Image as ImageIcon
+  Image as ImageIcon,
+  X,
+  AlertTriangle
 } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
-interface AdminProductListProps {
-  onEdit: (product: any) => void;
-  onAdd: () => void;
-}
-
-export function AdminProductList({ onEdit, onAdd }: AdminProductListProps) {
+export function AdminProductList() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [productToDelete, setProductToDelete] = useState<any>(null);
+  const [deleteConfirmName, setDeleteConfirmName] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
+  const fetchProducts = () => {
     ProductService.getAllProducts().then(data => {
       setProducts(data);
       setLoading(false);
     });
+  };
+
+  useEffect(() => {
+    fetchProducts();
   }, []);
+
+  const handleDelete = async () => {
+    if (deleteConfirmName !== productToDelete?.name) return;
+    setIsDeleting(true);
+    try {
+      await ProductService.deleteProduct(productToDelete.id);
+      setProductToDelete(null);
+      setDeleteConfirmName("");
+      fetchProducts();
+    } catch (e) {
+      console.error(e);
+      alert("Failed to delete product");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   if (loading) return (
     <div className="bg-white rounded-3xl border border-navy-100 p-20 text-center space-y-4">
@@ -111,21 +132,41 @@ export function AdminProductList({ onEdit, onAdd }: AdminProductListProps) {
                      </div>
                   </td>
                   <td className="p-4">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold ${
-                      product.isActive ? 'bg-green-100 text-green-700' : 'bg-navy-100 text-navy-400'
-                    }`}>
-                      {product.isActive ? 'ACTIVE' : 'DRAFT'}
-                    </span>
+                    <div className="flex flex-col gap-1.5">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold w-fit ${
+                        product.isActive ? 'bg-green-100 text-green-700' : 'bg-navy-100 text-navy-400'
+                      }`}>
+                        {product.isActive ? 'ACTIVE' : 'DRAFT'}
+                      </span>
+                      <div className="flex gap-1 flex-wrap">
+                        {product.isNewArrival && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black bg-saffron/10 text-amber-600 border border-saffron/30">
+                            ✦ NEW
+                          </span>
+                        )}
+                        {product.isTrending && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black bg-rose-50 text-rose-500 border border-rose-200">
+                            🔥 TREND
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </td>
                   <td className="p-4 text-right pr-8">
                     <div className="flex items-center justify-end gap-2">
-                        <button 
-                          onClick={() => onEdit(product)}
+                        <Link 
+                          href={`/admin/products/${product.id}/edit`}
                           className="p-2 hover:bg-navy-100 rounded-lg text-navy-400 hover:text-navy-900 transition-all"
                         >
                           <Edit2 size={16} />
-                        </button>
-                        <button className="p-2 hover:bg-red-50 rounded-lg text-navy-200 hover:text-red-500 transition-all">
+                        </Link>
+                        <button 
+                          onClick={() => {
+                            setProductToDelete(product);
+                            setDeleteConfirmName("");
+                          }}
+                          className="p-2 hover:bg-red-50 rounded-lg text-navy-200 hover:text-red-500 transition-all"
+                        >
                           <Trash2 size={16} />
                         </button>
                     </div>
@@ -136,6 +177,52 @@ export function AdminProductList({ onEdit, onAdd }: AdminProductListProps) {
           </tbody>
         </table>
       </div>
+
+      {/* Deletion Modal */}
+      {productToDelete && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          <div className="absolute inset-0 bg-navy-900/60 backdrop-blur-sm" onClick={() => !isDeleting && setProductToDelete(null)} />
+          <div className="relative bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl flex flex-col gap-6 animate-in zoom-in-95 duration-200">
+            <button 
+              onClick={() => !isDeleting && setProductToDelete(null)} 
+              className="absolute top-6 right-6 text-navy-200 hover:text-navy-900 transition-colors"
+            >
+              <X size={24} />
+            </button>
+
+            <div className="flex flex-col items-center text-center gap-4">
+              <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-2">
+                <AlertTriangle size={32} />
+              </div>
+              <h2 className="text-2xl font-black text-navy-900 tracking-tight">Delete Product</h2>
+              <p className="text-navy-600">
+                You are about to delete <span className="font-bold text-navy-900">{productToDelete.name}</span>. This action cannot be undone and will remove all variants and inventory data.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-xs font-bold text-navy-400 uppercase tracking-widest">
+                Type <span className="text-navy-900 bg-navy-50 px-2 py-0.5 rounded">{productToDelete.name}</span> to confirm
+              </label>
+              <input
+                type="text"
+                value={deleteConfirmName}
+                onChange={(e) => setDeleteConfirmName(e.target.value)}
+                placeholder={productToDelete.name}
+                className="w-full bg-navy-50 border border-navy-100 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all"
+              />
+            </div>
+
+            <Button
+              onClick={handleDelete}
+              disabled={deleteConfirmName !== productToDelete.name || isDeleting}
+              className="w-full rounded-xl h-14 bg-red-500 hover:bg-red-600 text-white font-bold text-base disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              {isDeleting ? "Deleting..." : "Permanently Delete"}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

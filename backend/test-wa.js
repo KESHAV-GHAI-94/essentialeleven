@@ -12,9 +12,6 @@ const TO_PHONE = "917051023512"; // Update this!
 
 async function testSMS() {
   console.log('Sending test message to WhatsApp via Meta...');
-
-  console.log('Sending test message to WhatsApp via Meta...');
-
   try {
     const response = await fetch(`https://graph.facebook.com/v17.0/${phoneNumberId}/messages`, {
       method: "POST",

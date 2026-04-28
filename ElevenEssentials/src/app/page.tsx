@@ -9,6 +9,8 @@ import { Star, Shield, Zap } from "lucide-react";
 
 export default function Home() {
   const [products, setProducts] = useState<any[]>([]);
+  const [newArrivals, setNewArrivals] = useState<any[]>([]);
+  const [trending, setTrending] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,10 +25,23 @@ export default function Home() {
             variantId: p.variants?.[0]?.id || "",
             name: p.name,
             price: p.variants?.[0]?.price || 0,
+            costPrice: p.variants?.[0]?.costPrice || 0,
+            markup: p.variants?.[0]?.markup || 0,
+            couponApplicable: p.couponApplicable || 'yes',
             image: p.images?.[0] || "",
             category: p.category?.name || "Essentials",
+            isNewArrival: p.isNewArrival || false,
+            isTrending: p.isTrending || false,
           }));
+
           setProducts(mapped);
+
+          // Filter by flags; fall back to first items if none are flagged
+          const arrivals = mapped.filter((p) => p.isNewArrival);
+          const trendingItems = mapped.filter((p) => p.isTrending);
+
+          setNewArrivals(arrivals.length > 0 ? arrivals : mapped.slice(0, 6));
+          setTrending(trendingItems.length > 0 ? trendingItems : mapped.slice(0, 4));
         }
       } catch (err) {
         console.error("Failed to load products:", err);
@@ -37,15 +52,15 @@ export default function Home() {
     loadData();
   }, []);
 
-  if (loading) return (
-    <div className="min-h-screen bg-navy-900 flex flex-col items-center justify-center gap-4 text-saffron">
-      <div className="w-12 h-12 border-4 border-saffron border-t-transparent rounded-full animate-spin" />
-      <p className="font-bold tracking-widest uppercase text-xs">Initializing E11 Experience...</p>
-    </div>
-  );
+  if (loading)
+    return (
+      <div className="min-h-screen bg-navy-900 flex flex-col items-center justify-center gap-4 text-saffron">
+        <div className="w-12 h-12 border-4 border-saffron border-t-transparent rounded-full animate-spin" />
+        <p className="font-bold tracking-widest uppercase text-xs">Initializing E11 Experience...</p>
+      </div>
+    );
 
-  const featured = products.slice(0, 4);
-  const newArrivals = products.slice(0, 6);
+  const featured = trending.slice(0, 4);
 
   const features = [
     { icon: Star, title: "Curated Precision", desc: "We don't sell everything. We sell the eleven things you actually need." },
@@ -61,9 +76,13 @@ export default function Home() {
 
       {featured.length > 0 && <FlashSale products={featured} />}
 
-      {newArrivals.length > 0 && <ProductCarousel title="New Arrivals" products={newArrivals} />}
+      {newArrivals.length > 0 && (
+        <ProductCarousel title="New Arrivals" products={newArrivals} />
+      )}
 
-      {featured.length > 0 && <ProductCarousel title="Trending Essentials" products={featured} />}
+      {trending.length > 0 && (
+        <ProductCarousel title="Trending Essentials" products={trending} />
+      )}
 
       {/* Why Essential Eleven */}
       <section className="py-24 bg-navy-50">
@@ -76,7 +95,10 @@ export default function Home() {
             {features.map((item, i) => {
               const Icon = item.icon;
               return (
-                <div key={i} className="flex flex-col items-start bg-white p-10 rounded-lg shadow-sm border border-navy-100/50 hover:shadow-md transition-all">
+                <div
+                  key={i}
+                  className="flex flex-col items-start bg-white p-10 rounded-lg shadow-sm border border-navy-100/50 hover:shadow-md transition-all"
+                >
                   <div className="w-12 h-12 bg-navy-900 rounded flex items-center justify-center mb-6">
                     {Icon && <Icon className="w-6 h-6 text-saffron" />}
                   </div>

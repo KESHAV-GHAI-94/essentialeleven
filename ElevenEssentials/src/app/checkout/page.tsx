@@ -16,7 +16,7 @@ import { useSession } from "next-auth/react";
 
 export default function CheckoutPage() {
    const { data: session } = useSession();
-   const { items, getCartTotal, clearCart } = useCartStore();
+   const { items, getCartTotal, clearCart, setItems } = useCartStore();
    const [mounted, setMounted] = useState(false);
    const [loading, setLoading] = useState(false);
    const [showExitIntent, setShowExitIntent] = useState(false);
@@ -59,6 +59,52 @@ export default function CheckoutPage() {
       if (session?.user?.id) {
          AddressService.getSavedAddresses(session.user.id).then(setSavedAddresses);
       }
+
+      // Auto-validate cart against fresh DB settings (fixes cached couponApplicable without manual clear)
+      async function validateCartItems() {
+         if (items.length === 0) return;
+         try {
+            const res = await fetch("/api/products", { cache: "no-store" });
+            const freshProducts = await res.json();
+            
+            let updated = false;
+            const updatedItems = items.map(cartItem => {
+               const freshProduct = freshProducts.find((p: any) => p.id === cartItem.productId);
+               if (!freshProduct) return cartItem;
+               
+               // cartItem.id is "productId-variantId" or just "variantId" depending on how it was added
+               const vId = cartItem.id.includes('-') ? cartItem.id.split('-')[1] : cartItem.id;
+               const freshVariant = freshProduct.variants?.find((v: any) => v.id === vId) || freshProduct.variants?.[0];
+               
+               const freshCoupon = freshProduct.couponApplicable || 'yes';
+               const freshCost = freshVariant?.costPrice || 0;
+               const freshMarkup = freshVariant?.markup || 0;
+               
+               if (
+                  cartItem.couponApplicable !== freshCoupon ||
+                  cartItem.costPrice !== freshCost ||
+                  cartItem.markup !== freshMarkup
+               ) {
+                  updated = true;
+                  return {
+                     ...cartItem,
+                     couponApplicable: freshCoupon,
+                     costPrice: freshCost,
+                     markup: freshMarkup,
+                  };
+               }
+               return cartItem;
+            });
+
+            if (updated) {
+               setItems(updatedItems);
+            }
+         } catch (e) {
+            console.error("Failed to auto-validate cart:", e);
+         }
+      }
+      
+      validateCartItems();
    }, [session?.user?.id]);
 
    const [formData, setFormData] = useState({
@@ -154,6 +200,8 @@ export default function CheckoutPage() {
       return null;
    }
 
+   const subtotal = getCartTotal();
+
    const handleApplyCoupon = async () => {
       if (!couponCode.trim()) return;
       try {
@@ -166,6 +214,21 @@ export default function CheckoutPage() {
             return;
          }
 
+         // Check if ANY item is eligible for this coupon
+         let hasEligibleItem = false;
+         items.forEach(item => {
+            const applicable = item.couponApplicable || 'yes';
+            if (applicable === 'yes') hasEligibleItem = true;
+            else if (applicable === 'flat_only' && coupon.type === 'FIXED') hasEligibleItem = true;
+            else if (applicable === 'percentage_only' && coupon.type === 'PERCENTAGE') hasEligibleItem = true;
+         });
+
+         if (!hasEligibleItem) {
+            setCouponError("This coupon is not applicable to any items in your cart.");
+            setAppliedCoupon(null);
+            return;
+         }
+
          setAppliedCoupon(coupon);
          setCouponError("");
       } catch (err: any) {
@@ -173,26 +236,50 @@ export default function CheckoutPage() {
          setCouponError(err.response?.data?.error || "Invalid coupon");
       }
    };
-
-   const subtotal = getCartTotal();
    
    // Calculate Base Discount
    let discountAmount = 0;
+   let eligibleSubtotal = 0;
+   
    if (appliedCoupon) {
+      items.forEach(item => {
+         const applicable = item.couponApplicable || 'yes';
+         let isEligible = false;
+         if (applicable === 'yes') isEligible = true;
+         else if (applicable === 'flat_only' && appliedCoupon.type === 'FIXED') isEligible = true;
+         else if (applicable === 'percentage_only' && appliedCoupon.type === 'PERCENTAGE') isEligible = true;
+
+         if (isEligible) {
+            eligibleSubtotal += (item.price * item.quantity);
+         }
+      });
+
       if (appliedCoupon.type === 'PERCENTAGE') {
-         discountAmount = subtotal * (appliedCoupon.discount / 100);
+         discountAmount = eligibleSubtotal * (appliedCoupon.discount / 100);
          // Apply Max Discount Cap
          if (appliedCoupon.maxDiscountAmount && discountAmount > appliedCoupon.maxDiscountAmount) {
             discountAmount = appliedCoupon.maxDiscountAmount;
          }
       } else {
-         discountAmount = appliedCoupon.discount;
+         discountAmount = Math.min(appliedCoupon.discount, eligibleSubtotal);
       }
    }
 
    // Margin Protection Condition (Standard E-commerce Approach)
    // Ensures coupon doesn't drop the profit below the "Target Margin %" of the Selling Price
    const totalMarginProtection = items.reduce((acc, item) => {
+      let isEligible = false;
+      const applicable = item.couponApplicable || 'yes';
+      if (!appliedCoupon) {
+         isEligible = true;
+      } else {
+         if (applicable === 'yes') isEligible = true;
+         else if (applicable === 'flat_only' && appliedCoupon.type === 'FIXED') isEligible = true;
+         else if (applicable === 'percentage_only' && appliedCoupon.type === 'PERCENTAGE') isEligible = true;
+      }
+
+      if (!isEligible) return acc;
+
       // Failsafe: If costPrice is missing, treat cost as the full price (0 profit available for discount)
       const cost = item.costPrice ?? item.price;
       const availableProfit = (item.price - (cost || 0));
@@ -202,7 +289,7 @@ export default function CheckoutPage() {
    }, 0);
 
    let isMarginProtected = false;
-   if (totalMarginProtection >= 0) {
+   if (appliedCoupon && totalMarginProtection >= 0) {
       if (discountAmount > totalMarginProtection) {
          discountAmount = totalMarginProtection;
          isMarginProtected = true;

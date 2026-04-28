@@ -12,6 +12,7 @@ export interface CartItem {
   image?: string;
   quantity: number;
   attributes?: Record<string, string>; // E.g. { Size: "M", Color: "Navy" }
+  couponApplicable?: string;
 }
 
 interface CartState {

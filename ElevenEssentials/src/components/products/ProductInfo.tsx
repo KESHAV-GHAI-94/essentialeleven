@@ -13,8 +13,6 @@ interface ProductVariant {
   name: string;
   price: number;
   originalPrice?: number;
-  costPrice?: number;
-  markup?: number;
   stock: number;
   attributes: any;
 }
@@ -27,6 +25,7 @@ interface ProductInfoProps {
     category: string;
     variants: ProductVariant[];
     mrp: number; // For demo discounts
+    couponApplicable?: string;
   };
 }
 
@@ -55,7 +54,8 @@ export function ProductInfo({ product }: ProductInfoProps) {
       markup: selectedVariant.markup,
       image: (product as any).images?.[0] || "/images/hero/obsidian.jpg",
       quantity,
-      attributes: selectedVariant.attributes
+      attributes: selectedVariant.attributes,
+      couponApplicable: product.couponApplicable
     };
     addItem(item as any);
     trackAddToCart(item);
@@ -63,7 +63,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
 
   return (
     <div className="flex flex-col gap-6 w-full">
-      
+
       {/* Title & Badges */}
       <div>
         <p className="text-navy-400 font-bold tracking-widest text-xs uppercase mb-2">{product.category}</p>
@@ -71,7 +71,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
           {product.name}
         </h1>
         <div className="flex items-center gap-4 text-sm font-semibold text-navy-600">
-          <span className="flex items-center gap-1 text-green-600"><ShieldCheck className="w-4 h-4"/> 1 Year Warranty</span>
+          <span className="flex items-center gap-1 text-green-600"><ShieldCheck className="w-4 h-4" /> 1 Year Warranty</span>
         </div>
       </div>
 
@@ -125,7 +125,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
                 <Plus className="w-5 h-5" />
               </Button>
             </div>
-            
+
             {/* Add to Cart */}
             <Button size="lg" className="flex-1 h-14 text-lg font-bold bg-saffron hover:bg-saffron-400 text-navy-900 rounded-xl hover:shadow-lg transition-all" onClick={handleAddToCart}>
               Add to Cart
@@ -136,37 +136,36 @@ export function ProductInfo({ product }: ProductInfoProps) {
             <span className="text-red-500 font-bold bg-red-50 p-4 rounded-xl text-center">Currently Out of Stock</span>
             {/* Notify Me block */}
             <div className="flex gap-2">
-              <input type="email" placeholder="Enter email to get notified" className="flex-1 border-2 border-navy-100 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron font-medium"/>
+              <input type="email" placeholder="Enter email to get notified" className="flex-1 border-2 border-navy-100 rounded-xl px-4 py-3 focus:outline-none focus:border-saffron font-medium" />
               <Button size="lg" className="h-14 font-bold bg-navy-900 rounded-xl">Notify Me</Button>
             </div>
           </div>
         )}
 
         <div className="flex gap-4 mt-2">
-           <Button
-             variant="outline"
-             className={`flex-1 rounded-xl h-12 font-bold shadow-sm border-navy-100 gap-2 transition-all ${
-               wishlisted
-                 ? "bg-red-50 text-red-500 border-red-200 hover:bg-red-100"
-                 : "text-navy-600 hover:bg-navy-50"
-             }`}
-             onClick={() =>
-               toggleItem({
-                 id: product.id,
-                 name: product.name,
-                 price: selectedVariant.price,
-                 mrp: product.mrp,
-                 image: (product as any).images?.[0] || "",
-                 category: product.category,
-               })
-             }
-           >
-             <Heart className={`w-5 h-5 ${wishlisted ? "fill-red-500" : ""}`} />
-             {wishlisted ? "Wishlisted" : "Wishlist"}
-           </Button>
-           <Button variant="outline" className="flex-1 rounded-xl h-12 font-bold text-navy-600 shadow-sm border-navy-100 gap-2 hover:bg-navy-50">
-             <Share2 className="w-5 h-5" /> Share
-           </Button>
+          <Button
+            variant="outline"
+            className={`flex-1 rounded-xl h-12 font-bold shadow-sm border-navy-100 gap-2 transition-all ${wishlisted
+              ? "bg-red-50 text-red-500 border-red-200 hover:bg-red-100"
+              : "text-navy-600 hover:bg-navy-50"
+              }`}
+            onClick={() =>
+              toggleItem({
+                id: product.id,
+                name: product.name,
+                price: selectedVariant.price,
+                mrp: product.mrp,
+                image: (product as any).images?.[0] || "",
+                category: product.category,
+              })
+            }
+          >
+            <Heart className={`w-5 h-5 ${wishlisted ? "fill-red-500" : ""}`} />
+            {wishlisted ? "Wishlisted" : "Wishlist"}
+          </Button>
+          <Button variant="outline" className="flex-1 rounded-xl h-12 font-bold text-navy-600 shadow-sm border-navy-100 gap-2 hover:bg-navy-50">
+            <Share2 className="w-5 h-5" /> Share
+          </Button>
         </div>
       </div>
 
@@ -179,7 +178,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
       </div>
 
       <PincodeEstimator />
-      
+
     </div>
   );
 }

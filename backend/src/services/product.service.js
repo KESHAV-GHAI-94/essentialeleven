@@ -3,7 +3,7 @@ import { redis } from "../utils/redis.js";
 
 export class ProductService {
   static async getAll() {
-    const cacheKey = "all_products_v_fresh_01";
+    const cacheKey = "all_products_v_fresh_02";
     
     // 1. Try to get from Redis
     try {

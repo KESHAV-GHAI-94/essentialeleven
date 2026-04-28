@@ -17,9 +17,9 @@ export interface Product {
   price: number;
   mrp?: number;
   image: string;
-  category: string;
   badges?: string[];
   discount?: number;
+  couponApplicable?: string;
 }
 
 export function ProductCard({ product }: { product: Product }) {
@@ -36,8 +36,11 @@ export function ProductCard({ product }: { product: Product }) {
       productId: product.id,
       name: product.name,
       price: product.price,
+      costPrice: product.costPrice,
+      markup: product.markup,
       image: product.image,
       quantity: 1,
+      couponApplicable: product.couponApplicable,
     });
     trackAddToCart(product);
   };

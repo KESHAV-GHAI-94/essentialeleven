@@ -13,6 +13,9 @@ export default async function ShopPage() {
     variantId: p.variants?.[0]?.id || "", // Specifically pass the first variant's ID
     name: p.name,
     price: p.variants?.[0]?.price || 0,
+    costPrice: p.variants?.[0]?.costPrice || 0,
+    markup: p.variants?.[0]?.markup || 0,
+    couponApplicable: p.couponApplicable || 'yes',
     image: p.images?.[0] || "",
     category: p.category?.name || "Essentials",
   }));

@@ -57,7 +57,7 @@ export class MailService {
   static async sendOrderConfirmation(email, orderDetails) {
     try {
       const settings = await this.getSettings();
-      
+
       // Check toggle
       if (settings && settings.notifyOrderEmail === false) {
         console.log("Order confirmation email disabled in settings. Skipping.");
@@ -75,7 +75,7 @@ export class MailService {
       const doc = new PDFDocument({ margin: 50 });
       const buffers = [];
       doc.on('data', buffers.push.bind(buffers));
-      
+
       const pdfPromise = new Promise((resolve) => {
         doc.on('end', () => {
           resolve(Buffer.concat(buffers));
@@ -89,7 +89,7 @@ export class MailService {
       doc.fontSize(10).fillColor('#94A3B8').text('Premium Lifestyle Essentials', { align: 'left' });
       doc.fontSize(10).fillColor('#475569').text(`Contact: ${storePhone} | ${senderEmail}`, { align: 'left' });
       doc.moveDown(2);
-      
+
       doc.fontSize(12).fillColor('#475569');
       doc.text(`Invoice ID: #INV-${orderDetails.id.slice(-8).toUpperCase()}`);
       doc.text(`Date of Issue: ${new Date().toLocaleDateString()}`);
@@ -115,10 +115,10 @@ export class MailService {
 
       doc.moveDown(2);
       // Ensure yPosition moves down appropriately before line
-      doc.y = yPosition + 10; 
+      doc.y = yPosition + 10;
       doc.moveTo(50, doc.y).lineTo(500, doc.y).strokeColor('#E2E8F0').stroke();
       doc.moveDown(1);
-      
+
       doc.fontSize(16).fillColor('#0F172A').text(`Total Amount: INR ${orderDetails.total.toLocaleString()}`, { align: 'right' });
       doc.moveDown(4);
       doc.fontSize(10).fillColor('#94A3B8').text(`Thank you for shopping with ${storeName}.`, { align: 'center' });

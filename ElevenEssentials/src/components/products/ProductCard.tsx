@@ -16,7 +16,10 @@ export interface Product {
   name: string;
   price: number;
   mrp?: number;
+  costPrice?: number;
+  markup?: number;
   image: string;
+  category: string;
   badges?: string[];
   discount?: number;
   couponApplicable?: string;
@@ -31,7 +34,7 @@ export function ProductCard({ product }: { product: Product }) {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    addItem({
+    const item = {
       id: `${product.id}-${product.variantId}`,
       productId: product.id,
       name: product.name,
@@ -41,8 +44,9 @@ export function ProductCard({ product }: { product: Product }) {
       image: product.image,
       quantity: 1,
       couponApplicable: product.couponApplicable,
-    });
-    trackAddToCart(product);
+    };
+    addItem(item);
+    trackAddToCart(item);
   };
 
   const handleView = () => {

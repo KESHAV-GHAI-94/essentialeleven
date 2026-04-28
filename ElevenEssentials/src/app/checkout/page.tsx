@@ -56,8 +56,11 @@ export default function CheckoutPage() {
       if (items.length > 0) {
          trackInitiateCheckout(getCartTotal(), items.length);
       }
-      if (session?.user?.id) {
-         AddressService.getSavedAddresses(session.user.id).then(setSavedAddresses);
+      if (session?.user) {
+         const userId = (session.user as any).id;
+         if (userId) {
+            AddressService.getSavedAddresses(userId).then(setSavedAddresses);
+         }
       }
 
       // Auto-validate cart against fresh DB settings (fixes cached couponApplicable without manual clear)
@@ -105,7 +108,7 @@ export default function CheckoutPage() {
       }
       
       validateCartItems();
-   }, [session?.user?.id]);
+   }, [(session?.user as any)?.id]);
 
    const [formData, setFormData] = useState({
       email: session?.user?.email || "",
@@ -311,7 +314,7 @@ export default function CheckoutPage() {
          // 1. Create order on backend
          const order = await PaymentService.createOrder({
             amount: total,
-            userId: session?.user?.id,
+            userId: (session?.user as any)?.id,
             email: formData.email,
             phone: formData.phone,
             address: formData.address,
@@ -334,10 +337,10 @@ export default function CheckoutPage() {
 
                 if (verifyData.success) {
                    // Save address for logged-in users if opted in
-                   if (session?.user?.id && saveAddress && formData.address) {
+                   if ((session?.user as any)?.id && saveAddress && formData.address) {
                       try {
                          const saved = await AddressService.addAddress({
-                            userId: session.user.id,
+                            userId: (session?.user as any).id,
                             street: formData.address,
                             city: formData.city,
                             zipCode: formData.pincode,
@@ -580,7 +583,7 @@ export default function CheckoutPage() {
                      </div>
 
                    {/* Save Address Toggle — only for logged-in users */}
-                   {session?.user?.id && (
+                   {(session?.user as any)?.id && (
                       <label className="flex items-center gap-3 cursor-pointer select-none group mt-1">
                          <div
                             onClick={() => setSaveAddress(!saveAddress)}

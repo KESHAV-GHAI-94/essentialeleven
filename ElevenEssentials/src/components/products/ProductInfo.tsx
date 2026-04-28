@@ -13,6 +13,8 @@ interface ProductVariant {
   name: string;
   price: number;
   originalPrice?: number;
+  costPrice?: number;
+  markup?: number;
   stock: number;
   attributes: any;
 }
